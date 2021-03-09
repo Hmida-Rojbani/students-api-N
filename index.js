@@ -1,5 +1,6 @@
 const express = require('express');
 const _ = require('lodash')
+const Joi = require('joi')
 const port = process.env.PORT || 3000
 const app = express();
 
@@ -26,6 +27,13 @@ app.get('/api/students/:id', (req,res)=>{
 
 app.use(express.json())
 
+var student_schema = Joi.object({
+    name : Joi.string().min(3).max(20).required(),
+    age : Joi.number().positive(),
+    class : Joi.string()
+
+});
+
 app.post('/api/students', (req,res)=>{
     /* let student = {
         id : students.length + 1,
@@ -33,6 +41,11 @@ app.post('/api/students', (req,res)=>{
         age : req.body.age,
         class : req.body.class
     } */
+    /* if(!req.body.name || req.body.length < 3 )
+        return res.status(400).send('Name must exist with at least 3 charcters') */
+    let validation_result = student_schema.validate(req.body)
+    if(validation_result.error)
+        return res.status(400).send(validation_result.error.details[0].message)
     let student = _.pick(req.body, ['name','age','class']);
     student.id = students.length + 1;
     students.push(student)
